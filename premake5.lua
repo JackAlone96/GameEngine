@@ -44,6 +44,7 @@ project "MegaMario"
 		cppdialect "C++20"
 		staticruntime "On"
 		systemversion "latest"
+		buildoptions "/MD"
 	
 		defines
 		{
@@ -59,10 +60,17 @@ project "MegaMario"
 			"sfml-graphics-s-d",
 			"sfml-window-s-d",
 			"sfml-system-s-d",
+			"sfml-audio-s-d",
 			"opengl32",
 			"freetype",
 			"winmm",
-			"gdi32"
+			"gdi32",
+			"flac",
+			"vorbisenc",
+			"openal32",
+			"vorbisfile",
+			"vorbis",
+			"ogg",
 		}
 
 	filter "configurations:Release"
@@ -74,7 +82,14 @@ project "MegaMario"
 			"sfml-graphics-s",
 			"sfml-window-s",
 			"sfml-system-s",
+			"sfml-audio-s",
 			"opengl32",
 			"freetype",
-			"winmm"
+			"winmm",
+			"flac",
+			"vorbisenc",
+			"openal32",
+			"vorbisfile",
+			"vorbis",
+			"ogg",
 		}

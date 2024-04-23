@@ -4,14 +4,14 @@
 #include <string>
 #include <tuple>
 
-typedef std::tuple<
-	CTransform,
+typedef std::tuple
+<   CTransform,
 	CLifeSpan,
 	CInput,
 	CBoundingBox,
 	CAnimation,
 	CGravity,
-	CState,
+	CState
 > ComponentTuple;
 
 class Entity

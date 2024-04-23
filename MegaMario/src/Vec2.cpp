@@ -2,8 +2,6 @@
 #include <math.h>
 #include <string>
 
-namespace Math
-{
 	Vec2::Vec2() {}
 
 	Vec2::Vec2(float x, float y)
@@ -118,4 +116,3 @@ namespace Math
 		std::string string = "(" + std::to_string(x) + ", " + std::to_string(y) + ")";
 		return string;
 	}
-}

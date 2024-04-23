@@ -275,7 +275,7 @@ void Scene_Play::SAnimation()
 
 	if (m_player->GetComponent<CState>().state == "air")
 	{
-		m_player->AddComponent<CAnimation>(m_game->assets().GetAnimation("Air"));
+		m_player->AddComponent<CAnimation>(m_game->assets().GetAnimation("Air"), true);
 	}
 
 	// TODO: set the animation of the player based on its CState component

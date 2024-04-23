@@ -62,14 +62,15 @@
       <AdditionalIncludeDirectories>..\vendor\IMGUI\include;..\vendor\IMGUI-SFML\include;..\vendor\SFML\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
-      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <AdditionalOptions>/MD %(AdditionalOptions)</AdditionalOptions>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <ExternalWarningLevel>Level3</ExternalWarningLevel>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>sfml-graphics-s-d.lib;sfml-window-s-d.lib;sfml-system-s-d.lib;opengl32.lib;freetype.lib;winmm.lib;gdi32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>sfml-graphics-s-d.lib;sfml-window-s-d.lib;sfml-system-s-d.lib;sfml-audio-s-d.lib;opengl32.lib;freetype.lib;winmm.lib;gdi32.lib;flac.lib;vorbisenc.lib;openal32.lib;vorbisfile.lib;vorbis.lib;ogg.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>..\vendor\SFML\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
@@ -84,7 +85,8 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <MinimalRebuild>false</MinimalRebuild>
       <StringPooling>true</StringPooling>
-      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <AdditionalOptions>/MD %(AdditionalOptions)</AdditionalOptions>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <ExternalWarningLevel>Level3</ExternalWarningLevel>
     </ClCompile>
@@ -92,30 +94,10 @@
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>sfml-graphics-s.lib;sfml-window-s.lib;sfml-system-s.lib;opengl32.lib;freetype.lib;winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>sfml-graphics-s.lib;sfml-window-s.lib;sfml-system-s.lib;sfml-audio-s.lib;opengl32.lib;freetype.lib;winmm.lib;flac.lib;vorbisenc.lib;openal32.lib;vorbisfile.lib;vorbis.lib;ogg.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>..\vendor\SFML\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
-  <ItemGroup>
-    <ClCompile Include="src\Action.cpp" />
-    <ClCompile Include="src\Animation.cpp" />
-    <ClCompile Include="src\Assets.cpp" />
-    <ClCompile Include="src\Entity.cpp" />
-    <ClCompile Include="src\EntityManager.cpp" />
-    <ClCompile Include="src\Game.cpp" />
-    <ClCompile Include="src\GameEngine.cpp" />
-    <ClCompile Include="src\Main.cpp" />
-    <ClCompile Include="src\imgui-sfml\imgui-SFML.cpp" />
-    <ClCompile Include="src\imgui-sfml\imgui.cpp" />
-    <ClCompile Include="src\imgui-sfml\imgui_demo.cpp" />
-    <ClCompile Include="src\imgui-sfml\imgui_draw.cpp" />
-    <ClCompile Include="src\imgui-sfml\imgui_tables.cpp" />
-    <ClCompile Include="src\imgui-sfml\imgui_widgets.cpp" />
-    <ClCompile Include="src\Physics.cpp" />
-    <ClCompile Include="src\Scene.cpp" />
-    <ClCompile Include="src\Scene_Play.cpp" />
-    <ClCompile Include="src\Vec2.cpp" />
-  </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Action.h" />
     <ClInclude Include="src\Animation.h" />
@@ -123,12 +105,30 @@
     <ClInclude Include="src\Components.h" />
     <ClInclude Include="src\Entity.h" />
     <ClInclude Include="src\EntityManager.h" />
-    <ClInclude Include="src\Game.h" />
     <ClInclude Include="src\GameEngine.h" />
     <ClInclude Include="src\Physics.h" />
     <ClInclude Include="src\Scene.h" />
     <ClInclude Include="src\Scene_Play.h" />
     <ClInclude Include="src\Vec2.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\Action.cpp" />
+    <ClCompile Include="src\Animation.cpp" />
+    <ClCompile Include="src\Assets.cpp" />
+    <ClCompile Include="src\Entity.cpp" />
+    <ClCompile Include="src\EntityManager.cpp" />
+    <ClCompile Include="src\GameEngine.cpp" />
+    <ClCompile Include="src\Main.cpp" />
+    <ClCompile Include="src\Physics.cpp" />
+    <ClCompile Include="src\Scene.cpp" />
+    <ClCompile Include="src\Scene_Play.cpp" />
+    <ClCompile Include="src\Vec2.cpp" />
+    <ClCompile Include="src\imgui-sfml\imgui-SFML.cpp" />
+    <ClCompile Include="src\imgui-sfml\imgui.cpp" />
+    <ClCompile Include="src\imgui-sfml\imgui_demo.cpp" />
+    <ClCompile Include="src\imgui-sfml\imgui_draw.cpp" />
+    <ClCompile Include="src\imgui-sfml\imgui_tables.cpp" />
+    <ClCompile Include="src\imgui-sfml\imgui_widgets.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

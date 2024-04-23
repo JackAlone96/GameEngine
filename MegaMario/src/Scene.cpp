@@ -1,4 +1,5 @@
 #include "Scene.h"
+#include "GameEngine.h"
 
 void Scene::SetPaused(bool paused)
 {
@@ -30,12 +31,12 @@ void Scene::RegisterAction(int inputKey, const std::string& actionName)
 
 size_t Scene::Width() const
 {
-	return size_t(); // TODO: ???
+	return m_game->window().getSize().x;
 }
 
 size_t Scene::Height() const
 {
-	return size_t(); // TODO: ???
+	return m_game->window().getSize().y;
 }
 
 size_t Scene::CurrentFrame() const
@@ -55,5 +56,6 @@ const ActionMap& Scene::GetActionMap() const
 
 void Scene::DrawLine(const Vec2& p1, const Vec2& p2)
 {
-	// TODO: How?
+	sf::Vertex line[] = { sf::Vector2f(p1.x, p1.y), sf::Vector2f(p2.x, p2.y) };
+	m_game->window().draw(line, 2, sf::Lines);
 }
