@@ -1,9 +1,66 @@
 #include "Assets.h"
 #include <iostream>
+#include <fstream>
+#include <filesystem>
 
-Assets::Assets() {};
+Assets::Assets() {}
 
-void Assets::AddTexture(std::string name, std::string path)
+void Assets::LoadFromFile(const std::string& path)
+{
+	std::fstream fin((std::filesystem::current_path() / "resources" / "assets.txt").string());
+	std::string label;
+
+	while (fin >> label)
+	{
+		if (label == "Texture")
+		{
+			std::string name;
+			std::string path;
+
+			fin >> name;
+			fin >> path;
+
+			AddTexture(name, path);
+		}
+		else if (label == "Animation")
+		{
+			std::string animationName;
+			std::string textureName;
+			int frameCount;
+			int framesPerAnimationFrame;
+
+			fin >> animationName;
+			fin >> textureName;
+			fin >> frameCount;
+			fin >> framesPerAnimationFrame;
+
+			AddAnimation(animationName, Animation(animationName, GetTexture(textureName), frameCount, framesPerAnimationFrame));
+		}
+		else if (label == "Sound")
+		{
+			std::string name;
+			std::string path;
+
+			fin >> name;
+			fin >> path;
+
+			AddSound(name, path);
+		}
+		else if (label == "Font")
+		{
+			std::string name;
+			std::string path;
+
+			fin >> name;
+			fin >> path;
+
+			AddFont(name, path);
+		}
+	}
+}
+
+
+void Assets::AddTexture(const std::string& name, const std::string& path)
 {
 	sf::Texture texture;
 	if (!texture.loadFromFile(path))
@@ -13,9 +70,13 @@ void Assets::AddTexture(std::string name, std::string path)
 	}
 
 	m_textures[name] = texture;
+
+#if GE_DEBUG
+	std::cout << "Texture: " << name << " loaded from " << path << std::endl;
+#endif
 }
 
-void Assets::AddSound(std::string name, std::string path)
+void Assets::AddSound(const std::string& name, const std::string& path)
 {
 	sf::SoundBuffer soundBuffer;
 	if (!soundBuffer.loadFromFile(path))
@@ -27,9 +88,13 @@ void Assets::AddSound(std::string name, std::string path)
 	sf::Sound sound;
 	sound.setBuffer(soundBuffer);
 	m_sounds[name] = sound;
+
+#if GE_DEBUG
+	std::cout << "Sound: " << name << " loaded from " << path << std::endl;
+#endif
 }
 
-void Assets::AddFont(std::string name, std::string path)
+void Assets::AddFont(const std::string& name, const std::string& path)
 {
 	sf::Font font;
 	if (!font.loadFromFile(path))
@@ -39,29 +104,37 @@ void Assets::AddFont(std::string name, std::string path)
 	}
 
 	m_fonts[name] = font;
+
+#if GE_DEBUG
+	std::cout << "Font: " << name << " loaded from " << path << std::endl;
+#endif
 }
 
-void Assets::AddAnimation(std::string name, Animation animation)
+void Assets::AddAnimation(const std::string& name, const Animation& animation)
 {
 	m_animations[name] = animation;
+
+	#if GE_DEBUG
+	std::cout << "Texture: " << name << " loaded!" << std::endl;
+#endif
 }
 
-const sf::Texture& Assets::GetTexture(std::string name) const
+const sf::Texture& Assets::GetTexture(const std::string& name) const
 {
 	return m_textures.at(name);
 }
 
-const sf::Sound& Assets::GetSound(std::string name) const
+const sf::Sound& Assets::GetSound(const std::string& name) const
 {
 	return m_sounds.at(name);
 }
 
-const sf::Font& Assets::GetFont(std::string name) const
+const sf::Font& Assets::GetFont(const std::string& name) const
 {
 	return m_fonts.at(name);
 }
 
-const Animation& Assets::GetAnimation(std::string name) const
+const Animation& Assets::GetAnimation(const std::string& name) const
 {
 	return m_animations.at(name);
 }

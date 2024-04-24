@@ -1,13 +1,14 @@
 #include "GameEngine.h"
+#include "Scene_Play.h"
 
 void GameEngine::init(const std::string& path)
 {
-	//m_assets.loadFromFile()
+	//m_assets.loadFromFile(path)
 
 	m_window.create(sf::VideoMode(1280, 768), "Definitely not mario");
 	m_window.setFramerateLimit(60);
 
-	//changeScene("MENU", std::make_shared<Scene_Menu>(this));
+	changeScene("LEVEL_1", std::make_shared<Scene_Play>(this, path));
 }
 
 void GameEngine::update()

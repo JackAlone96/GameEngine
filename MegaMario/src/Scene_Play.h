@@ -39,6 +39,7 @@ protected:
 
 public:
 
+	Scene_Play();
 	Scene_Play(GameEngine* gameEngine, const std::string& levelPath);
 
 	void Update();

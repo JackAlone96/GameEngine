@@ -5,6 +5,8 @@
 #include "Components.h"
 #include "Action.h"
 
+Scene_Play::Scene_Play() {}
+
 Scene_Play::Scene_Play(GameEngine* gameEngine, const std::string& levelPath)
 	: Scene(gameEngine), m_levelPath(levelPath)
 {
@@ -138,6 +140,7 @@ void Scene_Play::SMovement()
 
 void Scene_Play::SEnemySpawner()
 {
+
 }
 
 void Scene_Play::SRenderer()
@@ -222,6 +225,7 @@ void Scene_Play::SRenderer()
 
 void Scene_Play::SDebug()
 {
+
 }
 
 void Scene_Play::SLifespan()
