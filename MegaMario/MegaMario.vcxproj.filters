@@ -49,4 +49,8 @@
       <Filter>imgui-sfml</Filter>
     </ClCompile>
   </ItemGroup>
+  <ItemGroup>
+    <Text Include="resources\assets.txt" />
+    <Text Include="resources\level1.txt" />
+  </ItemGroup>
 </Project>

@@ -16,13 +16,13 @@ protected:
 	size_t m_simulationSpeed = 1;
 	bool m_running = true;
 
-	void init(const std::string& path);
+	void init();
 	void update();
 	void sUserInput();
 	std::shared_ptr<Scene> currentScene();
 
 public:
-	GameEngine(const std::string& path);
+	GameEngine();
 	void changeScene(const std::string& sceneName, std::shared_ptr<Scene> scene, bool endCurrentScene = false);
 	void quit();
 	void run();

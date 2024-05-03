@@ -5,7 +5,7 @@
 
 Assets::Assets() {}
 
-void Assets::LoadFromFile(const std::string& path)
+void Assets::LoadFromFile()
 {
 	std::fstream fin((std::filesystem::current_path() / "resources" / "assets.txt").string());
 	std::string label;

@@ -44,7 +44,6 @@ project "MegaMario"
 		cppdialect "C++20"
 		staticruntime "On"
 		systemversion "latest"
-		buildoptions "/MD"
 	
 		defines
 		{
@@ -54,6 +53,7 @@ project "MegaMario"
 	filter "configurations:Debug"
 		defines "GE_DEBUG"
 		symbols "On"
+		buildoptions "/MDd"
 
 		links
 		{
@@ -76,6 +76,7 @@ project "MegaMario"
 	filter "configurations:Release"
 		defines "GE_RELEASE"
 		optimize "On"
+		buildoptions "/MD"
 
 		links
 		{

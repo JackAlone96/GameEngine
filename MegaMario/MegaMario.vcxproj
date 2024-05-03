@@ -63,7 +63,7 @@
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <AdditionalOptions>/MD %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/MDd %(AdditionalOptions)</AdditionalOptions>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <ExternalWarningLevel>Level3</ExternalWarningLevel>
     </ClCompile>
@@ -129,6 +129,10 @@
     <ClCompile Include="src\imgui-sfml\imgui_draw.cpp" />
     <ClCompile Include="src\imgui-sfml\imgui_tables.cpp" />
     <ClCompile Include="src\imgui-sfml\imgui_widgets.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="resources\assets.txt" />
+    <Text Include="resources\level1.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

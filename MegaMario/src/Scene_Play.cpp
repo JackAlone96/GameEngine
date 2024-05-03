@@ -4,6 +4,8 @@
 #include "GameEngine.h"
 #include "Components.h"
 #include "Action.h"
+#include <fstream>
+#include <filesystem>
 
 Scene_Play::Scene_Play() {}
 
@@ -26,7 +28,7 @@ void Scene_Play::Init(const std::string& levelPath)
 	m_gridText.setCharacterSize(12);
 	m_gridText.setFont(m_game->assets().GetFont("Tech"));
 
-	//LoadLevel(levelPath); // TODO: ???
+	LoadLevel(levelPath);
 }
 
 Vec2 Scene_Play::GridToMidPixel(float gridX, float gridY, std::shared_ptr<Entity> entity)
@@ -36,8 +38,11 @@ Vec2 Scene_Play::GridToMidPixel(float gridX, float gridY, std::shared_ptr<Entity
 	//		 You must use the Entity's Animation size to position it correctly
 	//		 The size of the grid width and height is stored in m_gridSize.x and m_gridSize.Y
 	//		 The bottom-left corner of the Animation should align with the bottom left of the grid cell
+	const Vec2& entitySize = entity->GetComponent<CAnimation>().animation.getSize();
+	Vec2 centerPosition = Vec2(gridX * m_gridSize.x, gridY * m_gridSize.y) + entitySize/2;
+	centerPosition.y = m_game->window().getSize().y - centerPosition.y;
 
-	return Vec2(0, 0);
+	return centerPosition;
 }
 
 void Scene_Play::LoadLevel(const std::string& filename)
@@ -48,44 +53,76 @@ void Scene_Play::LoadLevel(const std::string& filename)
 	// TODO: read in the level file and add the appropriate entities
 	//		 use the PlayerConfig struct to store player properties
 	//		 this struct is defined ad the top of Scene_Play.h
+	std::fstream fin(filename);
+	std::string label;
+
+	while (fin >> label)
+	{
+		if (label == "Tile")
+		{
+			std::string animationName;
+			Vec2 position;
+
+			fin >> animationName;
+			fin >> position.x;
+			fin >> position.y;
+
+			auto tile = m_entityManager.AddEntity("tile");
+			tile->AddComponent<CAnimation>(m_game->assets().GetAnimation(animationName), false);
+			tile->AddComponent<CTransform>(GridToMidPixel(position.x, position.y, tile));
+		}
+		else if (label == "Player")
+		{
+			fin >> m_playerConfig.X;
+			fin >> m_playerConfig.Y;
+			fin >> m_playerConfig.CX;
+			fin >> m_playerConfig.CY;
+			fin >> m_playerConfig.SPEED;
+			fin >> m_playerConfig.JUMP;
+			fin >> m_playerConfig.MAXSPEED;
+			fin >> m_playerConfig.GRAVITY;
+			fin >> m_playerConfig.WEAPON;
+		}
+	}
 
 	// NOTE all of the code below is sample code which shows you how to set up and use entities with the new syntax, it should be removed
 
 	SpawnPlayer();
 
-	// some sample entities
-	auto brick = m_entityManager.AddEntity("tile");
-	// IMPORTANT: always add the CAnimation component first so that GridToMidPixel can compute correctly
-	brick->AddComponent<CAnimation>(m_game->assets().GetAnimation("Brick"), true);
-	brick->AddComponent<CTransform>(Vec2(96, 480));
+	//// some sample entities
+	//auto brick = m_entityManager.AddEntity("tile");
+	//// IMPORTANT: always add the CAnimation component first so that GridToMidPixel can compute correctly
+	//brick->AddComponent<CAnimation>(m_game->assets().GetAnimation("Brick"), true);
+	//brick->AddComponent<CTransform>(Vec2(96, 480));
 
-	// NOTE: Your final code should position the entity with the grid x,y position read from the file:
-	// brick->AddComponent<CTransform>(GridToMidPixel(gridX, gridY, brick));
+	//// NOTE: Your final code should position the entity with the grid x,y position read from the file:
+	//// brick->AddComponent<CTransform>(GridToMidPixel(gridX, gridY, brick));
 
-	if (brick->GetComponent<CAnimation>().animation.getName() == "Brick")
-	{
-		std::cout << "This could be a good way of identifying if a tile is a brick!" << std::endl;
-	}
+	//if (brick->GetComponent<CAnimation>().animation.getName() == "Brick")
+	//{
+	//	std::cout << "This could be a good way of identifying if a tile is a brick!" << std::endl;
+	//}
 
-	// NOTE: INCREDIBLY IMPORTANT
-	//		 Components are now returned as references rather than pointers
-	//		 If you don't specify a reference variable type it will COPY the component
+	//// NOTE: INCREDIBLY IMPORTANT
+	////		 Components are now returned as references rather than pointers
+	////		 If you don't specify a reference variable type it will COPY the component
 
-	// COPY EXAMPLE
-	// auto transform1 = entity->Get<CTranform>()
+	//// COPY EXAMPLE
+	//// auto transform1 = entity->Get<CTranform>()
 
-	// REFERENCE EXAMPLE
-	// auto& transform2 = entity->get<CTransform>()
+	//// REFERENCE EXAMPLE
+	//// auto& transform2 = entity->get<CTransform>()
 }
 
 void Scene_Play::SpawnPlayer()
 {
 	// sample player
 	m_player = m_entityManager.AddEntity("player");
-	m_player->AddComponent<CAnimation>(m_game->assets().GetAnimation("Stand"), true);
-	m_player->AddComponent<CTransform>(Vec2(224, 352));
-	m_player->AddComponent<CBoundingBox>(Vec2(48, 48));
-	m_player->AddComponent<CGravity>(0.1);
+	m_player->AddComponent<CAnimation>(m_game->assets().GetAnimation("Block"), true);
+	m_player->AddComponent<CTransform>(GridToMidPixel(m_playerConfig.X, m_playerConfig.Y, m_player));
+	m_player->AddComponent<CBoundingBox>(Vec2(m_playerConfig.CX, m_playerConfig.CY));
+	m_player->AddComponent<CGravity>(m_playerConfig.GRAVITY);
+	m_player->AddComponent<CInput>();
 
 	// TODO: Add the remaining component to the player
 }
@@ -101,10 +138,10 @@ void Scene_Play::Update()
 
 	// TODO: Implement pause functionality
 
-	SMovement();
-	SLifespan();
-	SCollision();
-	SAnimation();
+	//SMovement();
+	//SLifespan();
+	//SCollision();
+	//SAnimation();
 	SRenderer();
 }
 
@@ -150,11 +187,11 @@ void Scene_Play::SRenderer()
 	else { m_game->window().clear(sf::Color(50, 50, 150)); }
 
 	// set the viewport of the window to be centered on the player if it's far enough right
-	auto& pPos = m_player->GetComponent<CTransform>().pos;
-	float windowCenterX = std::max(m_game->window().getSize().x / 2.0f, pPos.x);
-	sf::View view = m_game->window().getView();
-	view.setCenter(windowCenterX, m_game->window().getSize().y - view.getCenter().y);
-	m_game->window().setView(view);
+	//auto& pPos = m_player->GetComponent<CTransform>().pos;
+	//float windowCenterX = std::max(m_game->window().getSize().x / 2.0f, pPos.x);
+	//sf::View view = m_game->window().getView();
+	//view.setCenter(windowCenterX, m_game->window().getSize().y - view.getCenter().y);
+	//m_game->window().setView(view);
 
 	// draw all Entity textures / animations
 	if (m_drawTextures)
@@ -221,6 +258,8 @@ void Scene_Play::SRenderer()
 			}
 		}
 	}
+
+	m_game->window().display();
 }
 
 void Scene_Play::SDebug()
@@ -290,4 +329,5 @@ void Scene_Play::SAnimation()
 void Scene_Play::OnEnd()
 {
 	// TODO: When the scene ends, change bach to the MENU scene
+	m_game->window().close();
 }

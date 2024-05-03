@@ -1,0 +1,11 @@
+Texture TexGround         resources/images/ground.png
+Texture TexWall           resources/images/wall.png
+Texture TexBlock          resources/images/block.png
+Texture TexQuestionBlock  resources/images/question_block.png
+
+Animation Ground          TexGround                            1 0
+Animation Wall            TexWall                              1 0
+Animation Block           TexBlock                             1 0
+Animation QuestionBlock   TexQuestionBlock                     1 0
+
+Font      Tech			  resources/fonts/TECHFONT.ttf

@@ -16,7 +16,7 @@ public:
 
 	Assets();
 
-	void LoadFromFile(const std::string& path);
+	void LoadFromFile();
 
 	void AddTexture(const std::string& name, const std::string& path);
 	void AddAnimation(const std::string& name, const Animation& animation);

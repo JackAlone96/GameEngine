@@ -22,7 +22,7 @@ protected:
 	bool m_drawTextures = true;
 	bool m_drawCollision = false;
 	bool m_drawGrid = false;
-	const Vec2 m_gridSize = { 64, 64 };
+	const Vec2 m_gridSize = { 150, 155 };
 	sf::Text m_gridText;
 
 	void Init(const std::string& levelPath);

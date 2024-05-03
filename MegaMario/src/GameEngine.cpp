@@ -1,14 +1,20 @@
 #include "GameEngine.h"
 #include "Scene_Play.h"
+#include <filesystem>
 
-void GameEngine::init(const std::string& path)
+GameEngine::GameEngine()
 {
-	//m_assets.loadFromFile(path)
+	init();
+}
+
+void GameEngine::init()
+{
+	m_assets.LoadFromFile();
 
 	m_window.create(sf::VideoMode(1280, 768), "Definitely not mario");
 	m_window.setFramerateLimit(60);
 
-	changeScene("LEVEL_1", std::make_shared<Scene_Play>(this, path));
+	changeScene("LEVEL_1", std::make_shared<Scene_Play>(this, (std::filesystem::current_path() / "resources" / "level1.txt").string()));
 }
 
 void GameEngine::update()
@@ -54,7 +60,7 @@ void GameEngine::sUserInput()
 			const std::string actionType = (event.type == sf::Event::KeyPressed) ? "START" : "END";
 
 			// look up the action and send the action to the scene
-			currentScene()->DoAction(Action(currentScene()->GetActionMap().at(event.key.code), actionType));
+			currentScene()->SDoAction(Action(currentScene()->GetActionMap().at(event.key.code), actionType));
 		}
 	}
 }
@@ -64,10 +70,6 @@ std::shared_ptr<Scene> GameEngine::currentScene()
 	return m_sceneMap[m_currentScene];
 }
 
-GameEngine::GameEngine(const std::string& path)
-{
-	init(path);
-}
 
 void GameEngine::changeScene(const std::string& sceneName, std::shared_ptr<Scene> scene, bool endCurrentScene)
 {
