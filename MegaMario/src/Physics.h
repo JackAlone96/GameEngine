@@ -6,10 +6,10 @@
 
 class Physics
 {
-public:
-
 	Physics();
 
-	Vec2 GetOverlap(std::shared_ptr<Entity> a, std::shared_ptr<Entity> b);
-	Vec2 GetPreviousOverlap(std::shared_ptr<Entity> a, std::shared_ptr<Entity> b);
+public:
+
+	static Vec2 GetOverlap(std::shared_ptr<Entity> a, std::shared_ptr<Entity> b);
+	static Vec2 GetPreviousOverlap(std::shared_ptr<Entity> a, std::shared_ptr<Entity> b);
 };

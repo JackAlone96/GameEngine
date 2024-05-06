@@ -6,6 +6,7 @@
 #include "Action.h"
 #include <fstream>
 #include <filesystem>
+#include <algorithm>
 
 Scene_Play::Scene_Play() {}
 
@@ -22,6 +23,10 @@ void Scene_Play::Init(const std::string& levelPath)
 	RegisterAction(sf::Keyboard::T, "TOGGLE_TEXTURE");
 	RegisterAction(sf::Keyboard::C, "TOGGLE_COLLISION");
 	RegisterAction(sf::Keyboard::G, "TOGGLE_GRID");
+
+	RegisterAction(sf::Keyboard::W, "JUMP");
+	RegisterAction(sf::Keyboard::D, "WALK-R");
+	RegisterAction(sf::Keyboard::A, "WALK-L");
 
 	//TODO: Register all other gameplay Actions
 
@@ -70,6 +75,7 @@ void Scene_Play::LoadLevel(const std::string& filename)
 			auto tile = m_entityManager.AddEntity("tile");
 			tile->AddComponent<CAnimation>(m_game->assets().GetAnimation(animationName), false);
 			tile->AddComponent<CTransform>(GridToMidPixel(position.x, position.y, tile));
+			tile->AddComponent<CBoundingBox>(tile->GetComponent<CAnimation>().animation.getSize());
 		}
 		else if (label == "Player")
 		{
@@ -77,7 +83,7 @@ void Scene_Play::LoadLevel(const std::string& filename)
 			fin >> m_playerConfig.Y;
 			fin >> m_playerConfig.CX;
 			fin >> m_playerConfig.CY;
-			fin >> m_playerConfig.SPEED;
+			fin >> m_playerConfig.ACCELERATION;
 			fin >> m_playerConfig.JUMP;
 			fin >> m_playerConfig.MAXSPEED;
 			fin >> m_playerConfig.GRAVITY;
@@ -138,26 +144,50 @@ void Scene_Play::Update()
 
 	// TODO: Implement pause functionality
 
-	//SMovement();
+	SMovement();
 	//SLifespan();
-	//SCollision();
+	SCollision();
 	//SAnimation();
 	SRenderer();
 }
 
 void Scene_Play::SMovement()
 {
-	Vec2 playerVelocity(0, m_player->GetComponent<CTransform>().velocity.y);
+	Vec2 playerVelocity(m_player->GetComponent<CTransform>().velocity.x, m_player->GetComponent<CTransform>().velocity.y);
 
-	if (m_player->GetComponent<CInput>().up)
+	if (m_player->GetComponent<CInput>().up && m_player->GetComponent<CState>().state == "grounded")
 	{
-		// Change palyer state
-		playerVelocity.y = -3;
+		m_player->GetComponent<CState>().state = "jumping";
+		playerVelocity.y = -m_playerConfig.JUMP;
+	}
+	
+	if (m_player->GetComponent<CInput>().right)
+	{
+		playerVelocity.x += m_playerConfig.ACCELERATION;
+	}
+	else if (m_player->GetComponent<CInput>().left)
+	{
+		playerVelocity.x -= m_playerConfig.ACCELERATION;
+	}
+	else if (!m_player->GetComponent<CInput>().right && !m_player->GetComponent<CInput>().left)
+	{
+		if (playerVelocity.x != 0)
+		{
+			if (playerVelocity.x > 0)
+			{
+				playerVelocity.x = std::clamp(playerVelocity.x - m_playerConfig.ACCELERATION, 0.0f, m_playerConfig.MAXSPEED);
+			}
+			else if (playerVelocity.x < 0)
+			{
+				playerVelocity.x = std::clamp(playerVelocity.x + m_playerConfig.ACCELERATION, -m_playerConfig.MAXSPEED, 0.0f);
+			}
+		}
 	}
 
+	playerVelocity.x = std::clamp(playerVelocity.x, -m_playerConfig.MAXSPEED, m_playerConfig.MAXSPEED);
 	m_player->GetComponent<CTransform>().velocity = playerVelocity;
 
-	for (auto e : m_entityManager.GetEntities())
+	for (const auto& e : m_entityManager.GetEntities())
 	{
 		if (e->HasComponent<CGravity>())
 		{
@@ -166,12 +196,13 @@ void Scene_Play::SMovement()
 			// if the player is moving faster than max speed in any direction set its speed in that direction to the max speed
 		}
 
+		e->GetComponent<CTransform>().prevPos = e->GetComponent<CTransform>().pos;
 		e->GetComponent<CTransform>().pos += e->GetComponent<CTransform>().velocity;
 	}
 
-	// TODO: Implement player movement/jumping based on its CInput component
-	// TODO: Implement gravity's effect on the player
-	// TODO: Implement the maximum player speed in both X and Y directions
+	// Implement player movement/jumping based on its CInput component
+	// Implement gravity's effect on the player
+	// Implement the maximum player speed in both X and Y directions
 	// NOTE: Setting an entity's scale.x to -1/1 will make it face to the left/right
 }
 
@@ -187,11 +218,11 @@ void Scene_Play::SRenderer()
 	else { m_game->window().clear(sf::Color(50, 50, 150)); }
 
 	// set the viewport of the window to be centered on the player if it's far enough right
-	//auto& pPos = m_player->GetComponent<CTransform>().pos;
-	//float windowCenterX = std::max(m_game->window().getSize().x / 2.0f, pPos.x);
-	//sf::View view = m_game->window().getView();
-	//view.setCenter(windowCenterX, m_game->window().getSize().y - view.getCenter().y);
-	//m_game->window().setView(view);
+	auto& pPos = m_player->GetComponent<CTransform>().pos;
+	float windowCenterX = std::max(m_game->window().getSize().x / 2.0f, pPos.x);
+	sf::View view = m_game->window().getView();
+	view.setCenter(windowCenterX, m_game->window().getSize().y - view.getCenter().y);
+	m_game->window().setView(view);
 
 	// draw all Entity textures / animations
 	if (m_drawTextures)
@@ -282,11 +313,56 @@ void Scene_Play::SCollision()
 
 	// TODO: Implement bullet/tile collisions
 	//		 Destroy the tile if it has a Brick animation
-	// TODO: Implement player/tile collisions and resolutions
+	// Implement player/tile collisions and resolutions
 	//		 Update the CState component of the plauer to store wether it is currently on the ground or in the air
 	//		 This will be used by the animation system
-	// TODO: Check to see if the plauer has fallen down a hole (y < height())
-	// TODO: Don't let the player walk off the left side of the map
+	// Check to see if the plauer has fallen down a hole (y < height())
+	// Don't let the player walk off the left side of the map
+
+	// Player / Tile Resolution
+	for (auto player : m_entityManager.GetEntities("player"))
+	{
+		auto& playerTransform = player->GetComponent<CTransform>();
+
+		if (playerTransform.pos.x - player->GetComponent<CBoundingBox>().halfSize.x < 0) playerTransform.pos.x = player->GetComponent<CBoundingBox>().halfSize.x;
+
+		if (playerTransform.pos.y > m_game->window().getSize().y + player->GetComponent<CBoundingBox>().halfSize.y)
+		{
+			playerTransform.pos = GridToMidPixel(m_playerConfig.X, m_playerConfig.Y, player);
+			playerTransform.velocity *= 0;
+		}
+
+		for (auto tile : m_entityManager.GetEntities("tile"))
+		{
+			Vec2 overlap = Physics::GetOverlap(player, tile);
+			if (overlap.x < 0 || overlap.y < 0) continue;
+			
+			Vec2 prevOverlap = Physics::GetPreviousOverlap(player, tile);
+			Vec2 direction;
+			float magnitude = 0;
+			if (prevOverlap.x < 0 && prevOverlap.y < 0)
+			{
+				direction += Vec2(-playerTransform.velocity.x, 0);
+				magnitude = overlap.x;
+				playerTransform.velocity.x = 0;
+			}
+			else if (prevOverlap.x > 0)
+			{
+				direction += Vec2(0, -playerTransform.velocity.y);
+				magnitude = overlap.y;
+				if (playerTransform.velocity.y > 0) m_player->GetComponent<CState>().state = "grounded";
+				playerTransform.velocity.y = 0;
+			}
+			else if (prevOverlap.y > 0)
+			{
+				direction += Vec2(-playerTransform.velocity.x, 0);
+				magnitude = overlap.x;
+				playerTransform.velocity.x = 0;
+			}
+			playerTransform.pos += direction.Normalize() * magnitude;
+		}
+	}
+
 }
 
 void Scene_Play::SDoAction(const Action& action)
@@ -298,16 +374,32 @@ void Scene_Play::SDoAction(const Action& action)
 		else if (action.Name() == "TOGGLE_GRID") { m_drawGrid = !m_drawGrid; }
 		else if (action.Name() == "PAUSE") { SetPaused(!m_paused); }
 		else if (action.Name() == "QUIT") { OnEnd(); }
-		else if (action.Name() == "UP")
+		else if (action.Name() == "JUMP")
 		{
 			m_player->GetComponent<CInput>().up = true;
+		}
+		else if (action.Name() == "WALK-R")
+		{
+			m_player->GetComponent<CInput>().right = true;
+		}
+		else if (action.Name() == "WALK-L")
+		{
+			m_player->GetComponent<CInput>().left = true;
 		}
 	}
 	else if (action.Type() == "END")
 	{
-		if (action.Name() == "UP")
+		if (action.Name() == "JUMP")
 		{
 			m_player->GetComponent<CInput>().up = false;
+		}
+		else if (action.Name() == "WALK-R")
+		{
+			m_player->GetComponent<CInput>().right = false;
+		}
+		else if (action.Name() == "WALK-L")
+		{
+			m_player->GetComponent<CInput>().left = false;
 		}
 	}
 }
@@ -316,7 +408,7 @@ void Scene_Play::SAnimation()
 {
 	// TODO: Complete the Animation class code first
 
-	if (m_player->GetComponent<CState>().state == "air")
+	if (m_player->GetComponent<CState>().state == "jumping")
 	{
 		m_player->AddComponent<CAnimation>(m_game->assets().GetAnimation("Air"), true);
 	}
