@@ -27,6 +27,7 @@ void Scene_Play::Init(const std::string& levelPath)
 	RegisterAction(sf::Keyboard::W, "JUMP");
 	RegisterAction(sf::Keyboard::D, "WALK-R");
 	RegisterAction(sf::Keyboard::A, "WALK-L");
+	RegisterAction(sf::Keyboard::Space, "FIRE");
 
 	//TODO: Register all other gameplay Actions
 
@@ -38,11 +39,11 @@ void Scene_Play::Init(const std::string& levelPath)
 
 Vec2 Scene_Play::GridToMidPixel(float gridX, float gridY, std::shared_ptr<Entity> entity)
 {
-	// TODO: This function takes in a grid (x,y) position and an Entity
-	//		 Return a Vec2 indicating where the CENTER position of the Entity should be
-	//		 You must use the Entity's Animation size to position it correctly
-	//		 The size of the grid width and height is stored in m_gridSize.x and m_gridSize.Y
-	//		 The bottom-left corner of the Animation should align with the bottom left of the grid cell
+	// This function takes in a grid (x,y) position and an Entity
+	//urn a Vec2 indicating where the CENTER position of the Entity should be
+	// must use the Entity's Animation size to position it correctly
+	// size of the grid width and height is stored in m_gridSize.x and m_gridSize.Y
+	// bottom-left corner of the Animation should align with the bottom left of the grid cell
 	const Vec2& entitySize = entity->GetComponent<CAnimation>().animation.getSize();
 	Vec2 centerPosition = Vec2(gridX * m_gridSize.x, gridY * m_gridSize.y) + entitySize/2;
 	centerPosition.y = m_game->window().getSize().y - centerPosition.y;
@@ -73,7 +74,7 @@ void Scene_Play::LoadLevel(const std::string& filename)
 			fin >> position.y;
 
 			auto tile = m_entityManager.AddEntity("tile");
-			tile->AddComponent<CAnimation>(m_game->assets().GetAnimation(animationName), false);
+			tile->AddComponent<CAnimation>(m_game->assets().GetAnimation(animationName), true);
 			tile->AddComponent<CTransform>(GridToMidPixel(position.x, position.y, tile));
 			tile->AddComponent<CBoundingBox>(tile->GetComponent<CAnimation>().animation.getSize());
 		}
@@ -136,6 +137,20 @@ void Scene_Play::SpawnPlayer()
 void Scene_Play::SpawnBullet()
 {
 	// TODO: this should spawn a bullet at the given entity, going in the diretion the entity is facing
+	std::shared_ptr<Entity> bullet = m_entityManager.AddEntity("bullet");
+	Vec2 bulletVelocity = m_player->GetComponent<CTransform>().scale.x > 0 ? Vec2(5, 0) : Vec2(-5, 0);
+	bullet->AddComponent<CTransform>(m_player->GetComponent<CTransform>().pos, bulletVelocity, Vec2(0.3f, 0.3f), 0);
+	bullet->AddComponent<CAnimation>(m_game->assets().GetAnimation("QuestionBlock"), true);
+	bullet->AddComponent<CBoundingBox>(Vec2(bullet->GetComponent<CAnimation>().animation.getSize().x, bullet->GetComponent<CAnimation>().animation.getSize().y));
+	bullet->AddComponent<CLifeSpan>(300, m_currentFrame);
+}
+
+void Scene_Play::SpawnExplosion(const Vec2& spawnPos)
+{
+	std::shared_ptr<Entity> explosion = m_entityManager.AddEntity("explosion");
+	explosion->AddComponent<CTransform>(spawnPos);
+	explosion->GetComponent<CTransform>().scale = Vec2(2, 2);
+	explosion->AddComponent<CAnimation>(m_game->assets().GetAnimation("Explosion"), false);
 }
 
 void Scene_Play::Update()
@@ -143,11 +158,11 @@ void Scene_Play::Update()
 	m_entityManager.Update();
 
 	// TODO: Implement pause functionality
-
+	m_currentFrame++;
 	SMovement();
-	//SLifespan();
+	SLifespan();
 	SCollision();
-	//SAnimation();
+	SAnimation();
 	SRenderer();
 }
 
@@ -164,10 +179,13 @@ void Scene_Play::SMovement()
 	if (m_player->GetComponent<CInput>().right)
 	{
 		playerVelocity.x += m_playerConfig.ACCELERATION;
+		m_player->GetComponent<CTransform>().scale.x = 1;
 	}
 	else if (m_player->GetComponent<CInput>().left)
 	{
 		playerVelocity.x -= m_playerConfig.ACCELERATION;
+		m_player->GetComponent<CTransform>().scale.x = -1;
+
 	}
 	else if (!m_player->GetComponent<CInput>().right && !m_player->GetComponent<CInput>().left)
 	{
@@ -192,18 +210,11 @@ void Scene_Play::SMovement()
 		if (e->HasComponent<CGravity>())
 		{
 			e->GetComponent<CTransform>().velocity.y += e->GetComponent<CGravity>().gravity;
-
-			// if the player is moving faster than max speed in any direction set its speed in that direction to the max speed
 		}
 
 		e->GetComponent<CTransform>().prevPos = e->GetComponent<CTransform>().pos;
 		e->GetComponent<CTransform>().pos += e->GetComponent<CTransform>().velocity;
 	}
-
-	// Implement player movement/jumping based on its CInput component
-	// Implement gravity's effect on the player
-	// Implement the maximum player speed in both X and Y directions
-	// NOTE: Setting an entity's scale.x to -1/1 will make it face to the left/right
 }
 
 void Scene_Play::SEnemySpawner()
@@ -301,6 +312,15 @@ void Scene_Play::SDebug()
 void Scene_Play::SLifespan()
 {
 	// TODO: Check lifespan of entities that have them, and destroy them if they go over
+	for (auto e : m_entityManager.GetEntities())
+	{
+		if (e->HasComponent<CLifeSpan>())
+		{
+			auto& lifespan = e->GetComponent<CLifeSpan>();
+
+			if (m_currentFrame - lifespan.frameCreated >= lifespan.lifespan) e->destroy();
+		}
+	}
 }
 
 void Scene_Play::SCollision()
@@ -350,7 +370,11 @@ void Scene_Play::SCollision()
 			{
 				direction += Vec2(0, -playerTransform.velocity.y);
 				magnitude = overlap.y;
-				if (playerTransform.velocity.y > 0) m_player->GetComponent<CState>().state = "grounded";
+				if (playerTransform.velocity.y > 0)
+				{
+					m_player->GetComponent<CState>().state = "grounded";
+				    SpawnExplosion(m_player->GetComponent<CTransform>().pos);
+				}
 				playerTransform.velocity.y = 0;
 			}
 			else if (prevOverlap.y > 0)
@@ -386,6 +410,10 @@ void Scene_Play::SDoAction(const Action& action)
 		{
 			m_player->GetComponent<CInput>().left = true;
 		}
+		else if (action.Name() == "FIRE")
+		{
+			SpawnBullet();
+		}
 	}
 	else if (action.Type() == "END")
 	{
@@ -408,14 +436,21 @@ void Scene_Play::SAnimation()
 {
 	// TODO: Complete the Animation class code first
 
-	if (m_player->GetComponent<CState>().state == "jumping")
-	{
-		m_player->AddComponent<CAnimation>(m_game->assets().GetAnimation("Air"), true);
-	}
+	//if (m_player->GetComponent<CState>().state == "jumping")
+	//{
+	//	m_player->AddComponent<CAnimation>(m_game->assets().GetAnimation("Air"), true);
+	//}
 
 	// TODO: set the animation of the player based on its CState component
 	// TODO: for each entity with an animation, call entity->GetComponent<CAnimation>().animation.Update()
 	//		 if the animation is not repeated and it has ended, destroy the entity
+	for (auto e : m_entityManager.GetEntities())
+	{
+		if (!e->HasComponent<CAnimation>()) continue;
+
+		e->GetComponent<CAnimation>().animation.update();
+		if (e->GetComponent<CAnimation>().animation.hasEnded() && !e->GetComponent<CAnimation>().repeat) e->destroy();
+	}
 }
 
 void Scene_Play::OnEnd()

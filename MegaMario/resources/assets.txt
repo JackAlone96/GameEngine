@@ -2,10 +2,12 @@ Texture TexGround         resources/images/ground.png
 Texture TexWall           resources/images/wall.png
 Texture TexBlock          resources/images/block.png
 Texture TexQuestionBlock  resources/images/question_block.png
+Texture TexExplosion	  resources/images/explosion.png
 
-Animation Ground          TexGround                            1 0
-Animation Wall            TexWall                              1 0
-Animation Block           TexBlock                             1 0
-Animation QuestionBlock   TexQuestionBlock                     1 0
+Animation Ground          TexGround                            1  1
+Animation Wall            TexWall                              1  1
+Animation Block           TexBlock                             1  1
+Animation QuestionBlock   TexQuestionBlock                     1  1
+Animation Explosion		  TexExplosion                         32 1
 
 Font      Tech			  resources/fonts/TECHFONT.ttf

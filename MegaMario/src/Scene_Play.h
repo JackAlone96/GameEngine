@@ -25,6 +25,8 @@ protected:
 	const Vec2 m_gridSize = { 64, 64 };
 	sf::Text m_gridText;
 
+	size_t m_gameFrame = 0;
+
 	void Init(const std::string& levelPath);
 
 	Vec2 GridToMidPixel(float gridX, float gridY, std::shared_ptr<Entity> entity);
@@ -34,6 +36,8 @@ protected:
 	void SpawnPlayer();
 
 	void SpawnBullet();
+
+	void SpawnExplosion(const Vec2& spawnPos);
 
 	void OnEnd();
 
